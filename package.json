@@ -1,0 +1,30 @@
+{
+  "name": "AoC-2020",
+  "version": "1.0.0",
+  "description": "Advent of Code 2020",
+  "main": "index.js",
+  "repository": "https://github.com/voliva/AoC-2020",
+  "author": "Josep M Sobrepere",
+  "license": "MIT",
+  "dependencies": {
+    "extgcd": "^1.0.0",
+    "fs-extra": "^8.1.0",
+    "ramda": "^0.26.1",
+    "readline-sync": "^1.4.10",
+    "tinyqueue": "^2.0.3"
+  },
+  "devDependencies": {
+    "cross-env": "^6.0.3",
+    "env-cmd": "^10.1.0",
+    "prettier": "^1.19.1",
+    "ts-node": "^8.5.4",
+    "typescript": "^3.7.2"
+  },
+  "scripts": {
+    "1": "ts-node ./src/index.js first",
+    "2": "ts-node ./src/index.js second",
+    "format": "prettier --write \"src/**/*.js\"",
+    "format:check": "prettier --list-different \"src/**/*.js\"",
+    "download": "env-cmd node ./src/downloadInput.js"
+  }
+}
