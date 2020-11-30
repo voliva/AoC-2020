@@ -23,9 +23,27 @@ export function findShortestPath<T>(
   root: T,
   getEdges: (node: T, path: T[]) => (T | [T, number])[],
   found: (node: T, path: T[]) => boolean,
+  getId?: (value: T) => any
+) {
+  const [weights, node, path] = bft(
+    root,
+    (node, path) => {
+      if (found(node, path)) {
+        return true;
+      }
+      return getEdges(node, path);
+    },
+    getId
+  );
+  return path ? [node, weights.get(node!)!, path] : null;
+}
+
+export function bft<T>(
+  root: T,
+  getEdges: (node: T, path: T[]) => true | (T | [T, number])[],
   getId: (value: T) => any = value => value
 ) {
-  const visited = new Set<T>();
+  const weights = new Map<T, number>();
   const tasks = new Queue();
   tasks.push(
     {
@@ -39,12 +57,18 @@ export function findShortestPath<T>(
   while ((task = tasks.pop())) {
     const {path, weight} = task;
     const node: T = path[path.length - 1];
-    visited.add(node);
-    if (found(node, path)) return [node, path] as [T, T[]];
+    if (weights.has(node)) {
+      continue;
+    }
+    weights.set(node, weight);
 
-    getEdges(node, path)
+    const result = getEdges(node, path);
+    if (result === true) {
+      return [weights, node, path] as const;
+    }
+    result
       .map(edge => (Array.isArray(edge) ? edge : ([edge, 1] as const)))
-      .filter(([node]) => !visited.has(getId(node)))
+      .filter(([node]) => !weights.has(getId(node)))
       .forEach(([node, edgeWeight]) =>
         tasks.push(
           {
@@ -55,5 +79,5 @@ export function findShortestPath<T>(
         )
       );
   }
-  return null;
+  return [weights] as const;
 }
