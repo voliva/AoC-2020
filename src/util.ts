@@ -1,5 +1,6 @@
 import Queue from 'flatqueue';
 
+// Input
 export const readGrid = (inputLines: string[]) =>
   inputLines.map(line => line.split(''));
 
@@ -17,6 +18,35 @@ export const regexParse = <T>(
   }
   return mapFn(result);
 };
+
+// Permutations
+export function* combinations<T>(elements: T[], n: number) {
+  if (n > elements.length || n < 1) {
+    throw new Error('Invalid n');
+  }
+  let permutation = new Array(n).fill(0).map((_, i) => i);
+  const isValidPerm = (permutation: number[]) =>
+    permutation.every(
+      (v, i) => (i === 0 || v > permutation[i - 1]) && v < elements.length
+    );
+
+  while (true) {
+    yield permutation.map(i => elements[i]);
+
+    let i = permutation.length - 1;
+    do {
+      permutation[i]++;
+      for (let j = i + 1; j < permutation.length; j++) {
+        permutation[j] = permutation[j - 1] + 1;
+      }
+      i--;
+    } while (i >= 0 && !isValidPerm(permutation));
+
+    if (!isValidPerm(permutation)) {
+      break;
+    }
+  }
+}
 
 // Graph
 export function findShortestPath<T>(
