@@ -4,7 +4,7 @@ import Queue from 'flatqueue';
 export const readGrid = (inputLines: string[]) =>
   inputLines.map(line => line.split(''));
 
-export const numberSplit = (text: string, separator = '') =>
+export const numberSplit = (text: string, separator = ',') =>
   text.split(separator).map(v => Number(v));
 
 export const regexParse = <T>(
