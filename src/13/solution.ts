@@ -37,11 +37,14 @@ const solution2 = (inputLines: string[]) => {
     while (diff < 0) {
       diff += id;
     }
-    return (diff * inverse(refV, id)) % id;
+    return [(diff * inverse(refV, id)) % id, id];
   });
 
+  console.log(inverses);
   // it's not 1143196560
-  return inverses.reduce((acc, v) => lcm(acc, v)) * refV;
+  // const factor = inverses.reduce((acc, v) => lcm(acc, v));
+  // console.log(inverses, factor);
+  // return factor * refV;
 };
 
 export {solution1, solution2};
