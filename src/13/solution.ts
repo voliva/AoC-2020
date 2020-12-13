@@ -1,5 +1,3 @@
-import lcm from 'lcm';
-
 const solution1 = (inputLines: string[]) => {
   const ts = Number(inputLines[0]);
   const ids = inputLines[1]
@@ -17,34 +15,34 @@ const solution1 = (inputLines: string[]) => {
   return ids[minIdx] * minutesNext[minIdx];
 };
 
-const inverse = (n: number, mod: number) => {
-  for (let r = 1; true; r++) {
-    if ((n * r) % mod === 1) return r;
+const inverse = (n: bigint, mod: bigint) => {
+  for (let r = 1n; true; r++) {
+    if ((n * r) % mod === 1n) return r;
   }
 };
 
 const solution2 = (inputLines: string[]) => {
   const ids = inputLines[1]
     .split(',')
-    .map((v, i) => (v === 'x' ? null : [Number(v), i])!)
+    .map((v, i) => (v === 'x' ? null : [BigInt(Number(v)), BigInt(i)])!)
     .filter(v => !!v);
 
-  const refV = ids[0][0];
-  const inverses = ids.slice(1).map(([id, offset]) => {
-    // x*refV = (id - offset) mod id
-    // x = (id - offset) * inv(refV) mod id
-    let diff = id - offset;
-    while (diff < 0) {
-      diff += id;
-    }
-    return [(diff * inverse(refV, id)) % id, id];
-  });
+  const N = ids.reduce((acc, v) => acc * v[0], 1n);
+  const Y = ids.map(([id]) => [N / id, id]);
+  const Z = Y.map(([y, id]) => inverse(y, id));
+  console.log({N, Y, Z});
 
-  console.log(inverses);
-  // it's not 1143196560
-  // const factor = inverses.reduce((acc, v) => lcm(acc, v));
-  // console.log(inverses, factor);
-  // return factor * refV;
+  let x = 0n;
+  for (let i = 0; i < ids.length; i++) {
+    let offset = ids[i][0] - ids[i][1];
+    while (offset < 0) offset += ids[i][0];
+
+    x += offset * Y[i][0] * Z[i];
+    x = x % N;
+  }
+
+  // It's less than 266204454441585
+  return x;
 };
 
 export {solution1, solution2};

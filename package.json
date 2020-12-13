@@ -10,7 +10,6 @@
     "extgcd": "^1.0.0",
     "flatqueue": "^1.2.1",
     "fs-extra": "^8.1.0",
-    "lcm": "^0.0.3",
     "ramda": "^0.26.1",
     "readline-sync": "^1.4.10"
   },
