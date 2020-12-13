@@ -51,11 +51,6 @@ extgcd@^1.0.0:
   resolved "https://registry.yarnpkg.com/extgcd/-/extgcd-1.0.0.tgz#5f9f171ffe7b08784dd94fb40c114cc20878b8a6"
   integrity sha512-bUbH6aIgLzfqCTmDGhdsmJA2hMUaszsZUrDH70y0XBOL7CF9Jir0wZiHqIkvWm1Jr6AdA/lNvBkbYZRdJJUNWQ==
 
-flatqueue@^1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/flatqueue/-/flatqueue-1.2.1.tgz#82f501758fc5925742fbeb478637230456157ef2"
-  integrity sha512-X86TpWS1rGuY7m382HuA9vngLeDuWA9lJvhEG+GfgKMV5onSvx5a71cl7GMbXzhWtlN9dGfqOBrpfqeOtUfGYQ==
-
 fs-extra@^8.1.0:
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-8.1.0.tgz#49d43c45a88cd9677668cb7be1b46efdb8d2e1c0"
@@ -86,6 +81,11 @@ make-error@^1.1.1:
   version "1.3.5"
   resolved "https://registry.yarnpkg.com/make-error/-/make-error-1.3.5.tgz#efe4e81f6db28cadd605c70f29c831b58ef776c8"
   integrity sha512-c3sIjNUow0+8swNwVpqoH4YCShKNFkMaw6oH1mNS2haDZQqkeZFlHS3dhoeEbKKmJB4vXpJucU6oH75aDYeE9g==
+
+optimized-quicksort@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/optimized-quicksort/-/optimized-quicksort-1.1.1.tgz#48dc24b96a0abfe0dcd33486204195845e423bf7"
+  integrity sha512-e//2sfoy8i/OGL86apW9br9xvaregFCJr0DZM/4TCVN11AL9K6TZMIPejEFW1/hJ8S8CkuyEr0Y6xm3deSIaWA==
 
 path-key@^3.1.0:
   version "3.1.1"
