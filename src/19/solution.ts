@@ -34,42 +34,47 @@ const parseInput = (inputLines: string[]) => {
   return {rules, passwords};
 };
 
-const passwordIsValidRec = (
-  password: string,
-  id: number,
-  rules: Rules
-): readonly [boolean, number] => {
-  const rule = rules.get(id)!;
+const prepareRules = (rules: Rules) => {
+  const solver = new Map<number, (psw: string) => number[]>();
 
-  loop1: for (let option of rule) {
-    let optionPsw = password;
-    for (let seq of option) {
-      if (typeof seq === 'string') {
-        console.log(id, seq, optionPsw.charAt(0));
-        return [optionPsw.charAt(0) === seq, 1] as const;
-      }
-
-      const [isInnerValid, length] = passwordIsValidRec(optionPsw, seq, rules);
-      console.log(id, seq, isInnerValid, length, optionPsw);
-      if (!isInnerValid) continue loop1;
-      optionPsw = optionPsw.slice(length);
-    }
-    console.log(id, 'ret true');
-    return [true, password.length - optionPsw.length];
+  for (let [id, rule] of rules.entries()) {
+    solver.set(id, psw =>
+      rule
+        .map(option => {
+          let lengths: number[] = [0];
+          for (let opt of option) {
+            if (typeof opt === 'string') {
+              if (psw.startsWith(opt)) {
+                return [opt.length];
+              }
+              return [];
+            }
+            let newLengths: number[] = [];
+            for (let l of lengths) {
+              const optLengths = solver.get(opt)!(psw.slice(l));
+              newLengths = [
+                ...newLengths,
+                ...optLengths.map(length => l + length),
+              ];
+            }
+            lengths = newLengths;
+          }
+          return lengths.filter(l => l > 0);
+        })
+        .filter(res => res.length)
+        .flat()
+    );
   }
-  console.log(id, 'ret false');
-  return [false, 0];
-};
-const passwordIsValid = (password: string, id: number, rules: Rules) => {
-  const [isValid, length] = passwordIsValidRec(password, id, rules);
-  console.log(password, isValid, password.length, length);
-  return isValid && length === password.length;
+
+  return solver;
 };
 
 const solution1 = (inputLines: string[]) => {
   const {rules, passwords} = parseInput(inputLines);
-  // passwordIsValidRec('aaaabbb', 0, rules);
-  return passwords.filter(line => passwordIsValid(line, 0, rules)).length;
+  const preparedRules = prepareRules(rules);
+  return passwords.filter(psw =>
+    preparedRules.get(0)!(psw).some(v => psw.length === v)
+  ).length;
 };
 
 //150
@@ -80,8 +85,10 @@ const solution2 = (inputLines: string[]) => {
     [42, 31],
     [42, 11, 31],
   ]);
-  return passwordIsValid('aaaaabbaabaaaaababaa', 0, rules);
-  return passwords.filter(line => passwordIsValid(line, 0, rules));
+  const preparedRules = prepareRules(rules);
+  return passwords.filter(psw =>
+    preparedRules.get(0)!(psw).some(v => psw.length === v)
+  ).length;
 };
 
 export {solution1, solution2};
