@@ -164,13 +164,38 @@ const findRestrictedCandidate = (
       rot => rot[0] === topRestriction || rot[3] === leftRestriction
     );
     if (rotation) {
-      return [id, rotation] as const;
+      return [id, rotation, rotations.indexOf(rotation)] as const;
     }
   }
   return null;
 };
 
-const solution2 = (inputLines: string[]) => {
+const getBody = (tile: string[][], orientation: number) => {
+  if (orientation >= 4) {
+    tile = tile.map(row => reverse(row));
+    orientation -= 4;
+  }
+  const body = tile.slice(1, -1).map(col => col.slice(1, -1));
+  switch (orientation) {
+    case 0:
+      return body;
+    case 1:
+      return body.map((row, r) =>
+        row.map((_, c) => body[body.length - 1 - c][r])
+      );
+    case 2:
+      return body.map((row, r) =>
+        row.map((_, c) => body[body.length - 1 - r][row.length - 1 - c])
+      );
+    case 3:
+      return body.map((row, r) =>
+        row.map((_, c) => body[c][row.length - 1 - r])
+      );
+  }
+  throw new Error('unknown orientation ' + orientation);
+};
+
+const solvePuzzle = (inputLines: string[]) => {
   const tiles = parseInput(inputLines);
 
   const tileEdges = new Map<number, number[][]>();
@@ -182,10 +207,9 @@ const solution2 = (inputLines: string[]) => {
 
   const [[corner, orientation]] = findCorners(tileEdges);
 
-  const grid: number[][] = [[corner]];
+  const grid: [number, number][][] = [[[corner, orientation]]];
   positionedTiles.set(corner, tileEdges.get(corner)![orientation]);
   tileEdges.delete(corner);
-  // console.log('corner', corner, positionedTiles.get(corner));
 
   const gaps: [number, number][] = [
     [0, 1],
@@ -197,10 +221,10 @@ const solution2 = (inputLines: string[]) => {
     if (gap[0] < 0 || gap[1] < 0) continue;
 
     const leftRestriction = grid[gap[0]]?.[gap[1] - 1]
-      ? positionedTiles.get(grid[gap[0]][gap[1] - 1])![1]
+      ? positionedTiles.get(grid[gap[0]][gap[1] - 1][0])![1]
       : null;
     const topRestriction = grid[gap[0] - 1]?.[gap[1]]
-      ? positionedTiles.get(grid[gap[0] - 1][gap[1]])![2]
+      ? positionedTiles.get(grid[gap[0] - 1][gap[1]][0])![2]
       : null;
     // console.log({gap, leftRestriction, topRestriction});
     if (!leftRestriction && !topRestriction) continue;
@@ -213,7 +237,7 @@ const solution2 = (inputLines: string[]) => {
     // console.log({candidate});
     if (candidate) {
       grid[gap[0]] = grid[gap[0]] || [];
-      grid[gap[0]][gap[1]] = candidate[0];
+      grid[gap[0]][gap[1]] = [candidate[0], candidate[2]];
       positionedTiles.set(candidate[0], candidate[1]);
       tileEdges.delete(candidate[0]);
       gaps.push([gap[0], gap[1] + 1]);
@@ -221,7 +245,30 @@ const solution2 = (inputLines: string[]) => {
     }
   }
 
-  return grid.map(row => row.join(', ')).join('\n');
+  console.log(grid);
+
+  const puzzle = grid.map(row =>
+    row.map(([id, orientation]) => getBody(tiles.get(id)!, orientation))
+  );
+  const joined: string[][] = [];
+  puzzle.forEach((row, r) => {
+    row.forEach((tile, c) => {
+      const jRow = r * tile.length;
+      tile.forEach((tileRow, tr) => {
+        joined[jRow + tr] = (joined[jRow + tr] || []).concat(tileRow);
+      });
+    });
+  });
+
+  return joined;
+};
+
+const solution2 = (inputLines: string[]) => {
+  const solved = solvePuzzle(inputLines);
+
+  console.log(solved.map(row => row.join('')).join('\n'));
+
+  return;
 };
 
 export {solution1, solution2};
