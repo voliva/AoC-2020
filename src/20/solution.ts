@@ -91,39 +91,49 @@ const findCandidates = (
   edgeIds: number[],
   edges: Map<number, number[][]>
 ) => {
-  const candidates: number[] = [];
+  const candidates: [number, number][] = [];
 
   for (let [id, rotations] of edges) {
     if (id === excludeId) continue;
-    if (
-      edgeIds.some((edgeId, i) =>
-        rotations.some(rot => {
-          const id = rot[(i + 2) % 4];
-          return edgeId === id;
-        })
-      )
-    ) {
-      candidates.push(id);
+    const idx = edgeIds.findIndex((edgeId, i) =>
+      rotations.some(rot => {
+        const id = rot[(i + 2) % 4];
+        return edgeId === id;
+      })
+    );
+    if (idx >= 0) {
+      candidates.push([id, idx]);
     }
-    // else if (id === 2473) {
-    //   console.log(edgeIds, rotations);
-    //   edgeIds.some((edgeId, i) => {
-    //     return rotations.some(rot => {
-    //       const id = rot[(i + 2) % 4];
-    //       console.log(edgeId, i, rot, id);
-    //       return edgeId === id;
-    //     });
-    //   });
-    // }
   }
   return candidates;
 };
 
 const findCorners = (edges: Map<number, number[][]>) => {
-  const corners: number[] = [];
+  const corners: [number, number][] = [];
   for (let [id, cardRotations] of edges) {
-    if (findCandidates(id, cardRotations[0], edges).length === 2) {
-      corners.push(id);
+    const candidates = findCandidates(id, cardRotations[0], edges);
+    if (candidates.length === 2) {
+      // Return the orientation so that it can be positioned at 0,0
+      const positions = candidates
+        .map(c => c[1])
+        .sort()
+        .join('');
+      const orientation = (() => {
+        switch (positions) {
+          case '01':
+            return 1;
+          case '12':
+            return 0;
+          case '23':
+            return 3;
+          case '03':
+            return 2;
+          default:
+            throw new Error('unknown positions ' + positions);
+        }
+      })();
+
+      corners.push([id, orientation]);
     }
   }
   return corners;
@@ -141,11 +151,77 @@ const solution1 = (inputLines: string[]) => {
   if (corners.length !== 4) {
     throw new Error('you dont have 4 corners: ' + corners.join(', '));
   }
-  return corners.reduce((a, b) => a * b);
+  return corners.map(c => c[0]).reduce((a, b) => a * b);
+};
+
+const findRestrictedCandidate = (
+  topRestriction: number | null,
+  leftRestriction: number | null,
+  edges: Map<number, number[][]>
+) => {
+  for (let [id, rotations] of edges) {
+    const rotation = rotations.find(
+      rot => rot[0] === topRestriction || rot[3] === leftRestriction
+    );
+    if (rotation) {
+      return [id, rotation] as const;
+    }
+  }
+  return null;
 };
 
 const solution2 = (inputLines: string[]) => {
-  return inputLines.length;
+  const tiles = parseInput(inputLines);
+
+  const tileEdges = new Map<number, number[][]>();
+  for (let [id, tile] of tiles) {
+    tileEdges.set(id, getEdges(tile));
+  }
+
+  const positionedTiles = new Map<number, number[]>();
+
+  const [[corner, orientation]] = findCorners(tileEdges);
+
+  const grid: number[][] = [[corner]];
+  positionedTiles.set(corner, tileEdges.get(corner)![orientation]);
+  tileEdges.delete(corner);
+  // console.log('corner', corner, positionedTiles.get(corner));
+
+  const gaps: [number, number][] = [
+    [0, 1],
+    [1, 0],
+  ];
+
+  while (gaps.length) {
+    const gap = gaps.pop()!;
+    if (gap[0] < 0 || gap[1] < 0) continue;
+
+    const leftRestriction = grid[gap[0]]?.[gap[1] - 1]
+      ? positionedTiles.get(grid[gap[0]][gap[1] - 1])![1]
+      : null;
+    const topRestriction = grid[gap[0] - 1]?.[gap[1]]
+      ? positionedTiles.get(grid[gap[0] - 1][gap[1]])![2]
+      : null;
+    // console.log({gap, leftRestriction, topRestriction});
+    if (!leftRestriction && !topRestriction) continue;
+
+    const candidate = findRestrictedCandidate(
+      topRestriction,
+      leftRestriction,
+      tileEdges
+    );
+    // console.log({candidate});
+    if (candidate) {
+      grid[gap[0]] = grid[gap[0]] || [];
+      grid[gap[0]][gap[1]] = candidate[0];
+      positionedTiles.set(candidate[0], candidate[1]);
+      tileEdges.delete(candidate[0]);
+      gaps.push([gap[0], gap[1] + 1]);
+      gaps.push([gap[0] + 1, gap[1]]);
+    }
+  }
+
+  return grid.map(row => row.join(', ')).join('\n');
 };
 
 export {solution1, solution2};
