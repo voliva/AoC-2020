@@ -170,29 +170,33 @@ const findRestrictedCandidate = (
   return null;
 };
 
+const rotate = <T>(array: T[][], orientation: number) => {
+  switch (orientation) {
+    case 0:
+      return array;
+    case 1:
+      return array.map((row, r) =>
+        row.map((_, c) => array[array.length - 1 - c][r])
+      );
+    case 2:
+      return array.map((row, r) =>
+        row.map((_, c) => array[array.length - 1 - r][row.length - 1 - c])
+      );
+    case 3:
+      return array.map((row, r) =>
+        row.map((_, c) => array[c][row.length - 1 - r])
+      );
+  }
+  throw new Error('unknown orientation ' + orientation);
+};
+
 const getBody = (tile: string[][], orientation: number) => {
   if (orientation >= 4) {
     tile = tile.map(row => reverse(row));
     orientation -= 4;
   }
   const body = tile.slice(1, -1).map(col => col.slice(1, -1));
-  switch (orientation) {
-    case 0:
-      return body;
-    case 1:
-      return body.map((row, r) =>
-        row.map((_, c) => body[body.length - 1 - c][r])
-      );
-    case 2:
-      return body.map((row, r) =>
-        row.map((_, c) => body[body.length - 1 - r][row.length - 1 - c])
-      );
-    case 3:
-      return body.map((row, r) =>
-        row.map((_, c) => body[c][row.length - 1 - r])
-      );
-  }
-  throw new Error('unknown orientation ' + orientation);
+  return rotate(body, orientation);
 };
 
 const solvePuzzle = (inputLines: string[]) => {
@@ -245,7 +249,7 @@ const solvePuzzle = (inputLines: string[]) => {
     }
   }
 
-  console.log(grid);
+  // console.log(grid);
 
   const puzzle = grid.map(row =>
     row.map(([id, orientation]) => getBody(tiles.get(id)!, orientation))
@@ -263,12 +267,47 @@ const solvePuzzle = (inputLines: string[]) => {
   return joined;
 };
 
+const monster = [
+  '                  # ',
+  '#    ##    ##    ###',
+  ' #  #  #  #  #  #   ',
+].flatMap((row, r) =>
+  row
+    .split('')
+    .map((col, c) => [col, c] as const)
+    .filter(([c]) => c === '#')
+    .map(([, c]) => [r - 1, c])
+);
+const matchesMonster = ([r, c]: [number, number], grid: string[][]) =>
+  monster.every(([rd, cd]) => grid[r + rd]?.[c + cd] === '#');
+
 const solution2 = (inputLines: string[]) => {
   const solved = solvePuzzle(inputLines);
 
-  console.log(solved.map(row => row.join('')).join('\n'));
+  let waters = 0;
+  for (let r = 0; r < solved.length; r++) {
+    for (let c = 0; c < solved[r].length; c++) {
+      if (solved[r][c] === '#') {
+        waters++;
+      }
+    }
+  }
 
-  return;
+  for (let o = 0; o < 8; o++) {
+    let monstersFound = 0;
+    for (let r = 0; r < solved.length; r++) {
+      for (let c = 0; c < solved[r].length; c++) {
+        if (matchesMonster([r, c], solved)) {
+          monstersFound++;
+        }
+      }
+    }
+    if (monstersFound > 0) {
+      return waters - monstersFound * monster.length;
+    }
+  }
+
+  return 'nothing found T.T';
 };
 
 export {solution1, solution2};
