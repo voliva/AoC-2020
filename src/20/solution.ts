@@ -294,10 +294,11 @@ const solution2 = (inputLines: string[]) => {
   }
 
   for (let o = 0; o < 8; o++) {
+    const rotated = rotate(solved, o);
     let monstersFound = 0;
-    for (let r = 0; r < solved.length; r++) {
-      for (let c = 0; c < solved[r].length; c++) {
-        if (matchesMonster([r, c], solved)) {
+    for (let r = 0; r < rotated.length; r++) {
+      for (let c = 0; c < rotated[r].length; c++) {
+        if (matchesMonster([r, c], rotated)) {
           monstersFound++;
         }
       }
